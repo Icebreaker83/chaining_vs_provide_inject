@@ -2,11 +2,7 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <Dashboard title="Solution using chaining props/emits" />
-      </v-col>
-
-      <v-col cols="12" md="6">
-        <!-- <Dashboard title="Solution using provide/inject" /> -->
+        <Dashboard title="Dashboard" />
       </v-col>
     </v-row>
   </v-container>

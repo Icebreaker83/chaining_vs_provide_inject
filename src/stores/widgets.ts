@@ -1,12 +1,13 @@
 import { uid } from "uid";
-import type { IWidget, IWidgetView, WidgetChanges } from "@/types/widgets";
+import type { IWidget, IWidgetView, WidgetChange } from "@/types/widgets";
 
 export const useWidgetsStore = defineStore("widgets", () => {
-  const getView = () => {
+  const getView = (isInit?: boolean) => {
     const id = uid();
     return {
       id,
       name: id,
+      isInit: !!isInit,
     };
   };
 
@@ -15,21 +16,20 @@ export const useWidgetsStore = defineStore("widgets", () => {
     return {
       id,
       name: id,
-      children: [getView()],
-      changes: isInit
-        ? []
-        : [{ icon: "mdi-plus-circle", title: "Added widget" }],
+      children: [getView(isInit)],
+      changes: [],
+      isInit: !!isInit,
     };
   };
-  // in real project, data would contain some async data
+
   const data = ref<IWidget[]>([getWidget(true)]);
-
   const widgets = ref<IWidget[]>([]);
-
+  const changes = ref<WidgetChange[]>([]);
   const edit = ref(false);
+
   const setEdit = (value: boolean) => {
     edit.value = value;
-    deletedWidgets.value = [];
+    changes.value = [];
     if (value) return;
     widgets.value = JSON.parse(JSON.stringify(data.value));
   };
@@ -37,55 +37,133 @@ export const useWidgetsStore = defineStore("widgets", () => {
   const reset = () => {
     edit.value = false;
     widgets.value = [];
-    deletedWidgets.value = [];
+    changes.value = [];
+  };
+
+  const addChange = (
+    widget: IWidget,
+    appliedChange: WidgetChange,
+    replace?: boolean
+  ) => {
+    const { id, name, changes: widgetChanges } = widget;
+
+    const { changes: changeItems } = appliedChange;
+
+    const changeHolder = widgetChanges.find(
+      (item) => item.id === appliedChange.id
+    );
+
+    changeHolder
+      ? changeHolder.changes.push(...changeItems)
+      : widget.changes.push(appliedChange);
+
+    const changeItem = changes.value.find((item) => item.id === id);
+    if (changeItem) {
+      changeItem.changes = [
+        ...(replace ? [] : changeItem.changes),
+        ...changeItems,
+      ];
+      return;
+    }
+    changes.value.push({
+      id,
+      name,
+      changes: [...changeItems],
+    });
   };
 
   const addWidget = () => {
-    widgets.value.push(getWidget());
+    const widget = getWidget();
+    const { id, name } = widget;
+    const change = {
+      id,
+      name,
+      changes: [{ icon: "mdi-plus-circle", title: "Added widget" }],
+    };
+    widgets.value.push(widget);
+    addChange(widget, change);
   };
 
-  const deletedWidgets = ref<WidgetChanges[]>([]);
   const deleteWidget = (widget: IWidget) => {
-    const index = widgets.value.findIndex((item) => item.id === widget.id);
+    const { id, name } = widget;
+    const index = widgets.value.findIndex((item) => item.id === id);
+
     if (index === -1) return;
     widgets.value.splice(index, 1);
-    data.value.some((item) => item.id === widget.id) &&
-      deletedWidgets.value.push({
-        icon: "mdi-close-circle",
-        title: `Deleted widget ${widget.name}`,
-      });
-  };
-
-  const addView = (parent: IWidget) => {
-    parent.children.push(getView());
-    parent.changes.push({ icon: "mdi-plus", title: "Added new view" });
-  };
-
-  const deleteView = (parent: IWidget, deleteData: IWidgetView) => {
-    const index = parent.children.findIndex(
-      (item) => item.id === deleteData.id
+    if (!widget.isInit) {
+      const changeIndex = changes.value.findIndex((item) => item.id === id);
+      changeIndex !== -1 && changes.value.splice(changeIndex, 1);
+      return;
+    }
+    addChange(
+      widget,
+      {
+        id,
+        name,
+        changes: [
+          { icon: "mdi-close-circle", title: `Deleted widget ${name}` },
+        ],
+      },
+      true
     );
-    if (index === -1) return;
-    parent.children.splice(index, 1);
-    parent.changes.push({
-      icon: "mdi-close",
-      title: `Deleted view ${deleteData.name}`,
-    });
   };
 
-  const updateView = (parent: IWidget, updateData: IWidgetView) => {
-    const { id, ...rest } = updateData;
-    const view = parent.children.find((item) => item.id === id);
+  const addView = (widget: IWidget) => {
+    const view = getView();
+    const { id, name } = view;
+    widget.children.push(view);
+    const change = {
+      id,
+      name,
+      changes: [{ icon: "mdi-plus", title: "Added new view" }],
+    };
+    addChange(widget, change);
+  };
+
+  const deleteView = (widget: IWidget, deleteData: IWidgetView) => {
+    const { id, name } = deleteData;
+    const index = widget.children.findIndex((item) => item.id === id);
+    if (index === -1) return;
+    widget.children.splice(index, 1);
+    if (!deleteData.isInit) {
+      const changeIndex = widget.changes.findIndex((item) => item.id === id);
+      changeIndex !== -1 && widget.changes.splice(changeIndex, 1);
+      return;
+    }
+    const change = {
+      id,
+      name,
+      changes: [
+        { icon: "mdi-close", title: `Deleted view ${deleteData.name}` },
+      ],
+    };
+    addChange(widget, change, true);
+  };
+
+  const updateView = (widget: IWidget, updateData: IWidgetView) => {
+    const { id, name } = updateData;
+    const view = widget.children.find((item) => item.id === id);
     if (!view) return;
-    Object.assign(view, rest);
-    parent.changes.push({
+    Object.assign(view, { name });
+    const changeItem = {
       icon: "mdi-pencil",
       title: `Edited view ${updateData.name}`,
-    });
+    };
+    const change = {
+      id,
+      name,
+      changes: [changeItem],
+    };
+
+    addChange(widget, change);
   };
 
   const onSave = () => {
-    data.value = widgets.value.map((item) => ({ ...item, changes: [] }));
+    data.value = widgets.value.map((item) => {
+      const { children: views, ...rest } = item;
+      const children = views.map((view) => ({ ...view, isInit: true }));
+      return { ...rest, isInit: true, children, changes: [] };
+    });
     reset();
   };
 
@@ -93,10 +171,10 @@ export const useWidgetsStore = defineStore("widgets", () => {
     data,
     widgets,
     edit,
+    changes,
     setEdit,
     reset,
     addWidget,
-    deletedWidgets,
     deleteWidget,
     addView,
     deleteView,

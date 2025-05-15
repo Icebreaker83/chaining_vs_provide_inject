@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ACard: typeof import('./components/ACard.vue')['default']
     Dashboard: typeof import('./components/Dashboard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

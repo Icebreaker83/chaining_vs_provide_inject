@@ -3,8 +3,9 @@
     <v-row>
       <v-col class="d-flex flex-wrap align-center">
         <span class="text-h5 me-auto">{{ props.title }}</span>
+
         <div v-if="edit" class="d-flex gap">
-          <v-menu>
+          <v-menu :close-on-content-click="false">
             <template #activator="{ props: menuProps }">
               <v-btn
                 v-if="dirty"
@@ -15,12 +16,25 @@
               />
             </template>
             <v-list>
-              <v-list-item
-                v-for="(item, index) in allChanges"
-                :key="index"
-                :prepend-icon="item.icon"
-                :title="item.title"
-              />
+              <v-list-group
+                v-for="item in changes"
+                :key="item.id"
+                :value="item.id"
+              >
+                <template #activator="{ props: changesListProps }">
+                  <v-list-item
+                    :="changesListProps"
+                    :title="`Widget: ${item.name}`"
+                  />
+                </template>
+
+                <v-list-item
+                  v-for="(change, index) in item.changes"
+                  :key="index"
+                  :prepend-icon="change.icon"
+                  :title="change.title"
+                />
+              </v-list-group>
             </v-list>
           </v-menu>
           <v-btn
@@ -75,14 +89,13 @@
 <script setup lang="ts">
 import { useWidgetsStore } from "@/stores/widgets";
 import Widget from "@/components/Widget.vue";
-import type { WidgetChanges } from "@/types/widgets";
 import { useDisplay } from "vuetify";
 
 const props = defineProps<{
   title: string;
 }>();
 
-const { data, widgets, edit, deletedWidgets } = storeToRefs(useWidgetsStore());
+const { data, widgets, edit, changes } = storeToRefs(useWidgetsStore());
 const { onSave, addWidget, setEdit, deleteWidget } = useWidgetsStore();
 const { smAndDown } = useDisplay();
 watch(
@@ -99,18 +112,8 @@ const onAddWidget = () => {
   addWidget();
 };
 
-const allChanges = computed(() => {
-  const widgetChanges =
-    widgetsRefs.value.reduce((acc, item) => {
-      if (!item.dirty) return acc;
-      acc.push(...item.changes);
-      return acc;
-    }, <WidgetChanges[]>[]) ?? [];
-  return [...deletedWidgets.value, ...widgetChanges];
-});
-
 const dirty = computed(() => {
-  return !!allChanges.value.length;
+  return !!changes.value.length;
 });
 </script>
 <style scoped lang="scss">

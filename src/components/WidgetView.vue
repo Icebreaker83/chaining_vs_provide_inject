@@ -29,7 +29,7 @@ const props = defineProps<{
   value: IWidgetView;
 }>();
 
-const data = reactive<IWidgetView>({ id: "", name: "" });
+const data = reactive<IWidgetView>({ id: "", name: "", isInit: false });
 watch(
   () => props.value,
   (newVal) => {
