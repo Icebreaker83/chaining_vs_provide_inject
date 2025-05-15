@@ -84,16 +84,17 @@ function updateUsername() {
 1. Then I would give him link to the [docs](https://pinia.vuejs.org/core-concepts/#Destructuring-from-a-Store) that explains this problem, because learning to read and understand the docs is one of the most important skills junior developer needs to learn
 1. Discuss further any questions
 
-
 ## Question #2
+
 Weʼve built a financial application that displays stock information to users.
 Letʼs focus on the ability to create a dashboard—similar to tools like Tableau—
 where users can place multiple charts and/or tables on a single page.
-* Users can add one or more widgets, which act as containers for these charts 
-or tables.
-* Each widget can have one or more views, which represent specific states of 
-the chart or table (e.g., a selected date range). These states are stored within 
-the view object.
+
+- Users can add one or more widgets, which act as containers for these charts
+  or tables.
+- Each widget can have one or more views, which represent specific states of
+  the chart or table (e.g., a selected date range). These states are stored within
+  the view object.
 
 In summary:
 An application contains dashboards → dashboards contain widgets → widgets contain multiple saved views.
@@ -103,20 +104,22 @@ Please describe your strategy for managing application state in a large-scale Vu
 Answer this question with either code snippets or with a functional MVP.
 
 ### Answer
-This repo contains the MVP which can be run using `npm run dev` command from the root of the project.  
+
+This repo contains the MVP which can be run using `npm run dev` command from the root of the project, or can be viewd [here](https://changes-state.netlify.app/)
 It demonstrates how props are passed to child components which emit events to parent components and how the changes are manipulated in store.  
 In real project, implementation would vary based on complexity. Since here we have 2 levels deep logic for changes, I used chaining props/events. In more complex structures, [provide/inject](https://vuejs.org/guide/components/provide-inject) can be used.
 In general I use modular approach, where all logic/store/components of specific feature is in its own folder. All state that I need to share between components/views I keep in store and expose via composable that is exported from index file in module folder. All state that I do not need to share, I keep where its needed. I've worked on projects where all state was being kept in stores, and it quickly became really hard to debug, and junior devs caused a lot of problems. So this approach I found most convenient so far.
 
 ## Question #3
 
-In the application described above, imagine you want to allow users to see each 
-otherʼs changes in real time—similar to the “multiplayerˮ functionality in tools like 
+In the application described above, imagine you want to allow users to see each
+otherʼs changes in real time—similar to the “multiplayerˮ functionality in tools like
 Google Docs or Figma, where users can view edits as they happen.
-How would you implement this feature? You may suggest any third-party libraries 
-or state management tools as needed, but assume Supabase PostgreSQL is 
+How would you implement this feature? You may suggest any third-party libraries
+or state management tools as needed, but assume Supabase PostgreSQL is
 used as the backend database.
 
 #### Answer
+
 I would try with [@supabase/realtime-js](https://www.npmjs.com/package/@supabase/realtime-js).  
-If not sufficient, I would implement look for another solution, and if everything fails, implement my own [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) solution.  
+If not sufficient, I would implement look for another solution, and if everything fails, implement my own [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) solution.
