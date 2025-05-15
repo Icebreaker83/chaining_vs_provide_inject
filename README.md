@@ -122,4 +122,4 @@ used as the backend database.
 #### Answer
 
 I would try with [@supabase/realtime-js](https://www.npmjs.com/package/@supabase/realtime-js).  
-If not sufficient, I would implement look for another solution, and if everything fails, implement my own [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) solution.
+If not sufficient, I would look for another solution, and if everything fails, implement my own [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) solution.
