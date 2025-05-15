@@ -105,7 +105,7 @@ Answer this question with either code snippets or with a functional MVP.
 
 ### Answer
 
-This repo contains the MVP which can be run using `npm run dev` command from the root of the project, or can be viewd [here](https://changes-state.netlify.app/)
+This repo contains the MVP which can be run using `npm run dev` command from the root of the project, or can be viewed [HERE](https://changes-state.netlify.app/).  
 It demonstrates how props are passed to child components which emit events to parent components and how the changes are manipulated in store.  
 In real project, implementation would vary based on complexity. Since here we have 2 levels deep logic for changes, I used chaining props/events. In more complex structures, [provide/inject](https://vuejs.org/guide/components/provide-inject) can be used.
 In general I use modular approach, where all logic/store/components of specific feature is in its own folder. All state that I need to share between components/views I keep in store and expose via composable that is exported from index file in module folder. All state that I do not need to share, I keep where its needed. I've worked on projects where all state was being kept in stores, and it quickly became really hard to debug, and junior devs caused a lot of problems. So this approach I found most convenient so far.
